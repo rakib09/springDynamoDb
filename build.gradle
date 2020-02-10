@@ -16,6 +16,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'com.amazonaws:aws-java-sdk-dynamodb:1.11.717'
     implementation 'com.github.derjust:spring-data-dynamodb:5.1.0'
+    implementation 'com.amazonaws:aws-java-sdk-cloudsearch:1.11.718'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.9.6'
+    implementation 'com.google.guava:guava:18.0'
     implementation 'com.google.code.gson:gson:2.8.5'
     testImplementation('org.springframework.boot:spring-boot-starter-test') {
         exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
