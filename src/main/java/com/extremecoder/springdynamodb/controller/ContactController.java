@@ -1,6 +1,7 @@
 package com.extremecoder.springdynamodb.controller;
 
 import com.amazonaws.services.cloudsearchdomain.model.*;
+import com.extremecoder.springdynamodb.docs.AddDocument;
 import com.extremecoder.springdynamodb.docs.DeleteDocument;
 import com.extremecoder.springdynamodb.docs.Document;
 import com.extremecoder.springdynamodb.entity.Contact;
@@ -57,12 +58,12 @@ public class ContactController {
         return contactService.deleteByContactId(contactId);
     }
 
-    @GetMapping("/contact/search")
-    public List searchContact() {
+    @GetMapping("/contact/search/{name}")
+    public List searchContact(@PathVariable("name") String name) {
         SearchRequest searchRequest = new SearchRequest(). //
                 // withQuery("date:[1970-01-01T00:00:00Z TO " +
                 // tomorrow.toString() + "]"). //
-                 withQuery("name: rakib").
+                 withQuery("name: " + name).
                 // withSort("date asc"). //
 //                        withQuery("*:*"). //
                 // withFacet(Facet.toJson("integer_i")). //
@@ -74,16 +75,33 @@ public class ContactController {
         log.info("search start");
         List<SearchResult> searchResults = cloudSearchClient.search("contact", searchRequest);
         log.info("search finish");
-        List<Document> docsToDelete = new ArrayList<>();
+        List contactList = new ArrayList<>();
         for (SearchResult searchResult : searchResults) {
-            for (Map.Entry<String, BucketInfo> facet : searchResult.getFacets().entrySet()) {
-                log.debug("facet: {} {}", facet.getKey(), facet.getValue());
-            }
             for (Hit hit : searchResult.getHits().getHit()) {
-                DeleteDocument docToDelete = new DeleteDocument(hit.getId());
-                docsToDelete.add(docToDelete);
+                contactList.add(hit.getFields());
             }
         }
-        return docsToDelete;
+        return contactList;
+    }
+
+    @PostMapping("/upload")
+    public String upload(@RequestBody Contact contact) {
+        List<Document> docs = new ArrayList<>();
+        log.info("upload start");
+        Contact contactUploadedToDB = contactService.saveContact(contact);
+        AddDocument addDocument = AddDocument
+                .withRandomId()
+                .withField("contactid",contactUploadedToDB.getContactId())
+                .withField("name", contactUploadedToDB.getName())
+                .withField("email", contactUploadedToDB.getEmail())
+                .withField("mobile", contactUploadedToDB.getMobile())
+                ;
+        docs.add(addDocument);
+        List<UploadDocumentsResult> uploadDocumentsResults = cloudSearchClient.uploadDocuments("contact", docs);
+        for (UploadDocumentsResult uploadDocumentsResult : uploadDocumentsResults) {
+            log.info("uploadDocumentsResult: {}", uploadDocumentsResult);
+        }
+
+        return "Success";
     }
 }
