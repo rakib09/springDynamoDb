@@ -5,7 +5,11 @@ plugins {
 }
 
 group = 'com.extremecoder'
+<<<<<<< HEAD
 version = '0.0.13'
+=======
+version = '0.0.15-SNAPSHOT'
+>>>>>>> release/0.0.14
 sourceCompatibility = '1.8'
 
 repositories {
